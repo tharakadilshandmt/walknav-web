@@ -92,7 +92,7 @@ async function autoSeed() {
             }
             console.log(`   ✅ ${nodesInserted} nodes inserted`);
 
-            // Insert edges
+            // Insert edges — use SAVEPOINTs so one failure doesn't abort the whole transaction
             let edgesInserted = 0;
             let edgesSkipped = 0;
 
@@ -107,6 +107,9 @@ async function autoSeed() {
                         const lineCoords = polyline.map(p => `${p.lng} ${p.lat}`).join(', ');
                         const edgeId = edge.id || `edge_${edge.from}_${edge.to}`;
 
+                        // SAVEPOINT so a single failed edge doesn't abort the entire transaction
+                        await client.query('SAVEPOINT edge_insert');
+
                         await client.query(
                             `INSERT INTO edges (id, source_node, target_node, geom, length, floor_type, has_steps, surface, wheelchair, bicycle, highway, width, lit, incline, way_name, osmid)
                              VALUES ($1, $2, $3, ST_SetSRID(ST_GeomFromText($4), 4326), $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
@@ -117,12 +120,27 @@ async function autoSeed() {
                                 edge.distance || 0, edge.floor_type || 0, edge.has_steps || 0,
                                 edge.surface || null, edge.wheelchair || null, edge.bicycle || null,
                                 edge.highway || null, edge.width || null, edge.lit || null,
-                                edge.incline || null, edge.way_name || null, edge.osmid || null,
+                                edge.incline || null, edge.way_name || null,
+                                // osmid may be a PG array string like "{123,456}" — extract first value
+                                (() => {
+                                    const v = edge.osmid;
+                                    if (v == null) return null;
+                                    if (typeof v === 'number') return v;
+                                    const s = String(v).replace(/[{}"]/g, '').split(',')[0].trim();
+                                    return s && !isNaN(s) ? parseInt(s, 10) : null;
+                                })(),
                             ]
                         );
+
+                        await client.query('RELEASE SAVEPOINT edge_insert');
                         edgesInserted++;
-                    } catch {
+                    } catch (edgeErr) {
+                        // Rollback to savepoint so the transaction stays alive for the next edge
+                        await client.query('ROLLBACK TO SAVEPOINT edge_insert').catch(() => { });
                         edgesSkipped++;
+                        if (edgesSkipped <= 3) {
+                            console.warn(`   ⚠️  Edge skipped (${edge.id || edge.from + '->' + edge.to}): ${edgeErr.message}`);
+                        }
                     }
                 }
             }
