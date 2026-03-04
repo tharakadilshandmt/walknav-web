@@ -155,11 +155,102 @@ async function autoSeed() {
             client.release();
         }
 
+        // Infer accessibility from physical attributes (wheelchair, bicycle, ramps)
+        await inferAccessibility();
+
         // Create admin user
         await ensureAdminUser();
 
     } catch (err) {
         console.warn('⚠️  Auto-seed check failed:', err.message);
+    }
+}
+
+/**
+ * Infer accessibility attributes from physical edge properties.
+ * Fills wheelchair, bicycle, and ramp fields for edges that don't already have them.
+ */
+async function inferAccessibility() {
+    try {
+        console.log('♿ Inferring accessibility from physical attributes...');
+
+        // Wheelchair: YES for smooth paved surfaces without stairs
+        const wYes = await db.query(`
+            UPDATE edges SET wheelchair = 'yes' 
+            WHERE has_steps = 0 
+            AND highway IS DISTINCT FROM 'steps'
+            AND floor_type IN (0, 1, 4)
+            AND (surface IS NULL OR surface IN ('asphalt', 'concrete', 'paving_stones', 'paved'))
+            AND wheelchair IS NULL
+        `);
+
+        // Wheelchair: LIMITED for rough paved surfaces
+        const wLimited = await db.query(`
+            UPDATE edges SET wheelchair = 'limited'
+            WHERE has_steps = 0
+            AND highway IS DISTINCT FROM 'steps'
+            AND floor_type IN (0, 1)
+            AND surface IN ('concrete:plates', 'compacted')
+            AND wheelchair IS NULL
+        `);
+
+        // Wheelchair: NO for stairs, sand, wood
+        const wNo = await db.query(`
+            UPDATE edges SET wheelchair = 'no'
+            WHERE (has_steps = 1 OR highway = 'steps' OR floor_type IN (2, 3))
+            AND wheelchair IS NULL
+        `);
+
+        console.log(`   wheelchair: ${wYes.rowCount} yes, ${wLimited.rowCount} limited, ${wNo.rowCount} no`);
+
+        // Bicycle: YES for smooth surfaces without stairs
+        const bYes = await db.query(`
+            UPDATE edges SET bicycle = 'yes'
+            WHERE has_steps = 0
+            AND highway IS DISTINCT FROM 'steps'
+            AND floor_type IN (0, 1, 4)
+            AND bicycle IS NULL
+        `);
+
+        // Bicycle: NO for stairs
+        const bNo = await db.query(`
+            UPDATE edges SET bicycle = 'no'
+            WHERE (has_steps = 1 OR highway = 'steps')
+            AND bicycle IS NULL
+        `);
+
+        // Bicycle: DISMOUNT for sand/wood
+        const bDismount = await db.query(`
+            UPDATE edges SET bicycle = 'dismount'
+            WHERE has_steps = 0
+            AND floor_type IN (2, 3)
+            AND bicycle IS NULL
+        `);
+
+        console.log(`   bicycle: ${bYes.rowCount} yes, ${bDismount.rowCount} dismount, ${bNo.rowCount} no`);
+
+        // Ramps: paved paths adjacent to stairs and under 50m
+        const ramps = await db.query(`
+            UPDATE edges SET highway = 'ramp'
+            WHERE id IN (
+                SELECT DISTINCT e2.id
+                FROM edges e1
+                JOIN edges e2 ON (e2.source_node = e1.source_node OR e2.source_node = e1.target_node
+                               OR e2.target_node = e1.source_node OR e2.target_node = e1.target_node)
+                WHERE e1.has_steps = 1
+                AND e2.has_steps = 0
+                AND e2.floor_type IN (0, 1)
+                AND (e2.highway IS NULL OR e2.highway IN ('footway', 'path'))
+                AND e2.length < 50
+            )
+            AND has_steps = 0
+            AND (highway IS NULL OR highway NOT IN ('pedestrian', 'service', 'unclassified', 'tertiary', 'steps'))
+        `);
+
+        console.log(`   ramps: ${ramps.rowCount} detected`);
+        console.log('♿ Accessibility inference complete!');
+    } catch (err) {
+        console.warn('⚠️  Accessibility inference failed:', err.message);
     }
 }
 
