@@ -32,6 +32,16 @@ pgdata/
 # Test coverage
 coverage/
 
+# Test artifacts & debug output
+*_debug.txt
+*_output.txt
+*_results*.txt
+test-results.json
+test-failures.txt
+
+# Production env
+.env.production
+
 # Temp
 tmp/
 .tmp/
