@@ -179,6 +179,14 @@ if (process.env.NODE_ENV !== 'test') {
         console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
         console.log(`🔒 CORS origins: ${allowedOrigins.join(', ')}\n`);
 
+        // Auto-seed database if empty (for Docker one-command deployment)
+        try {
+            const { autoSeed } = require('./utils/auto-seed');
+            await autoSeed();
+        } catch (err) {
+            console.warn('⚠️  Auto-seed skipped:', err.message);
+        }
+
         // Load routing graph into memory at startup
         try {
             const routingService = require('./services/routing.service');

@@ -21,20 +21,33 @@ ngrok version >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] ngrok is not installed.
     echo         Run: winget install ngrok.ngrok
+    echo         Then: ngrok config add-authtoken YOUR_TOKEN
+    echo         Get token: https://dashboard.ngrok.com/signup
     pause
     exit /b 1
 )
 
-REM Check if the app is running
-curl -s http://localhost:5173 >nul 2>&1
+REM Check if the production app is running (nginx on port 80)
+curl -sf http://localhost/api/health >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] WalkNav frontend is not running on port 5173.
-    echo         Run start.bat first!
-    pause
-    exit /b 1
+    REM Fallback: check dev mode (port 5173)
+    curl -sf http://localhost:5173 >nul 2>&1
+    if errorlevel 1 (
+        echo [ERROR] WalkNav is not running.
+        echo         Run start.bat first!
+        pause
+        exit /b 1
+    )
+    echo [INFO] Dev mode detected — tunneling port 5173...
+    echo.
+    echo  Share the "Forwarding" URL with your supervisor.
+    echo  Press Ctrl+C to stop.
+    echo.
+    ngrok http 5173
+    exit /b 0
 )
 
-echo [INFO] Starting ngrok tunnel...
+echo [INFO] Production mode detected — tunneling port 80 (Nginx)
 echo.
 echo  When ngrok starts, share the "Forwarding" URL
 echo  (e.g. https://xxxx-xxx.ngrok-free.app) with your
@@ -43,6 +56,5 @@ echo.
 echo  Press Ctrl+C to stop the tunnel.
 echo.
 
-REM Tunnel port 5173 (frontend) — the frontend calls the API via relative /api path
-REM through the nginx reverse proxy or Vite proxy
-ngrok http 5173
+REM Tunnel port 80 (nginx reverse proxy) — all API + frontend through one URL
+ngrok http 80

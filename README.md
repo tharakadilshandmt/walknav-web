@@ -149,6 +149,12 @@ walknav-web/
 
 See [.env.example](.env.example) for all environment variables.
 
+## 📚 Documentation
+
+- [API Reference](API_DOCS.md) — Full endpoint documentation with examples
+- [Deployment Guide](DEPLOYMENT.md) — Docker, ngrok, and cloud deployment options
+- [.env.example](.env.example) — Environment variable reference
+
 ## 📜 License
 
 Developed as part of an academic research project at Monash University.

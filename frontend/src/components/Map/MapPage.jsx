@@ -1068,6 +1068,15 @@ export default function MapPage() {
                 </div>
             )}
 
+            {/* Map Loading Skeleton */}
+            {!mapLoaded && !mapError && (
+                <div className="skeleton-map">
+                    <div className="skeleton-map-icon">🗺️</div>
+                    <div className="spinner" />
+                    <div className="skeleton-map-text">Loading map...</div>
+                </div>
+            )}
+
             {/* Map */}
             <div className="map-container" ref={mapContainer} />
 

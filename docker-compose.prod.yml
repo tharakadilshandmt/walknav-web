@@ -30,8 +30,9 @@ services:
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost}
       RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
-    # No volume mounts in production
-    volumes: !reset []
+    # Keep seed data mount for auto-seeding, remove dev source mounts
+    volumes:
+      - ./database/seed:/app/seed:ro
     # No port exposure — accessed through Nginx
     ports: !reset []
 

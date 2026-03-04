@@ -9,6 +9,7 @@ export default function LoginPage() {
     const [name, setName] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -30,7 +31,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="login-page">
+        <div className="login-page page-enter">
             <div className="login-card card">
                 <div className="login-icon">🧭</div>
                 <h1 className="login-title">WalkNav</h1>
@@ -38,7 +39,7 @@ export default function LoginPage() {
                     {isRegister ? 'Create your account' : 'Sign in to navigate'}
                 </p>
 
-                {error && <div className="login-error">{error}</div>}
+                {error && <div className="login-error" role="alert">{error}</div>}
 
                 <form className="login-form" onSubmit={handleSubmit}>
                     {isRegister && (
@@ -51,6 +52,7 @@ export default function LoginPage() {
                             onChange={(e) => setName(e.target.value)}
                             required
                             autoComplete="name"
+                            aria-label="Full name"
                         />
                     )}
                     <input
@@ -62,18 +64,31 @@ export default function LoginPage() {
                         onChange={(e) => setEmail(e.target.value)}
                         required
                         autoComplete="email"
+                        aria-label="Email address"
                     />
-                    <input
-                        id="login-password"
-                        className="input"
-                        type="password"
-                        placeholder="Password (min 8 characters)"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={8}
-                        autoComplete={isRegister ? 'new-password' : 'current-password'}
-                    />
+                    <div className="password-wrapper">
+                        <input
+                            id="login-password"
+                            className="input"
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Password (min 8 characters)"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            minLength={8}
+                            autoComplete={isRegister ? 'new-password' : 'current-password'}
+                            aria-label="Password"
+                        />
+                        <button
+                            type="button"
+                            className="password-toggle"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            tabIndex={-1}
+                        >
+                            {showPassword ? '🙈' : '👁️'}
+                        </button>
+                    </div>
                     <button
                         id="login-submit"
                         className="btn btn-primary btn-lg"

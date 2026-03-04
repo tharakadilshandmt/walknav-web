@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './components/Toast/Toast';
 import LoginPage from './components/Auth/LoginPage';
 import MapPage from './components/Map/MapPage';
 import AdminPage from './components/Admin/AdminPage';
@@ -10,9 +11,10 @@ function ProtectedRoute({ children }) {
 
     if (loading) {
         return (
-            <div className="loading-screen">
+            <div className="loading-screen loading-screen-branded">
+                <div className="login-icon">🧭</div>
                 <div className="spinner" />
-                <span style={{ color: 'var(--color-text-secondary)' }}>Loading...</span>
+                <span className="loading-text">Loading WalkNav...</span>
             </div>
         );
     }
@@ -25,9 +27,10 @@ function AdminRoute({ children }) {
 
     if (loading) {
         return (
-            <div className="loading-screen">
+            <div className="loading-screen loading-screen-branded">
+                <div className="login-icon">🧭</div>
                 <div className="spinner" />
-                <span style={{ color: 'var(--color-text-secondary)' }}>Loading...</span>
+                <span className="loading-text">Loading WalkNav...</span>
             </div>
         );
     }
@@ -74,7 +77,9 @@ function AppRoutes() {
 export default function App() {
     return (
         <AuthProvider>
-            <AppRoutes />
+            <ToastProvider>
+                <AppRoutes />
+            </ToastProvider>
         </AuthProvider>
     );
 }
