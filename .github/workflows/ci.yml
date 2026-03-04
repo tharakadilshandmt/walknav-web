@@ -1,0 +1,135 @@
+# ============================================
+# WalkNav CI/CD Pipeline
+# ============================================
+name: WalkNav CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ---- Backend: Lint & Test ----
+  backend-test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: walknav_test
+          POSTGRES_USER: walknav_user
+          POSTGRES_PASSWORD: walknav_test_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U walknav_user -d walknav_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Initialize test database
+        run: psql -h localhost -U walknav_user -d walknav_test -f database/init.sql
+        env:
+          PGPASSWORD: walknav_test_pass
+
+      - name: Seed test database
+        working-directory: backend
+        run: node src/utils/seed.js
+        env:
+          DATABASE_URL: postgres://walknav_user:walknav_test_pass@localhost:5432/walknav_test
+          NODE_ENV: test
+
+      - name: Run tests
+        working-directory: backend
+        run: npm test -- --forceExit
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgres://walknav_user:walknav_test_pass@localhost:5432/walknav_test
+          JWT_SECRET: ci-test-secret
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+
+  # ---- Frontend: Build ----
+  frontend-build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+        env:
+          VITE_API_URL: /api
+          VITE_MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+
+  # ---- Docker: Build Images ----
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-build]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build --target prod -t walknav-backend:${{ github.sha }} ./backend
+
+      - name: Build frontend image
+        run: |
+          docker build --target prod \
+            --build-arg VITE_API_URL=/api \
+            --build-arg VITE_MAPBOX_TOKEN=${{ secrets.MAPBOX_TOKEN }} \
+            -t walknav-frontend:${{ github.sha }} ./frontend
+
+      - name: Build nginx image
+        run: docker build -t walknav-nginx:${{ github.sha }} ./nginx
+
+      - name: Verify images
+        run: |
+          docker images | grep walknav
+          echo "✅ All images built successfully"

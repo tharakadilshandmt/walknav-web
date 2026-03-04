@@ -1,0 +1,309 @@
+﻿Running one project: integration
+  console.log
+    ≡ƒôª New database connection established
+
+      at BoundPool.log (src/config/db.js:13:13)
+
+  console.log
+    ≡ƒôª New database connection established
+
+      at BoundPool.log (src/config/db.js:13:13)
+
+  console.log
+    ≡ƒôª New database connection established
+
+      at BoundPool.log (src/config/db.js:13:13)
+
+  console.log
+    ≡ƒôª New database connection established
+
+      at BoundPool.log (src/config/db.js:13:13)
+
+npx : PASS integration 
+__tests__/integration/admin.test.js
+At line:1 char:23
++ ... ENV='test'; npx jest 
+--selectProjects integration --verbose 
+--forceEx ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified 
+   : (PASS integratio...n/admin.test.js:S  
+  tring) [], RemoteException
+    + FullyQualifiedErrorId : NativeComman 
+   dError
+ 
+  Admin API
+    Access Control
+      ΓêÜ rejects unauthenticated requests 
+(45 ms)
+      ΓêÜ rejects non-admin users (16 ms)
+      ΓêÜ allows admin users (16 ms)
+    GET /api/admin/stats
+      ΓêÜ returns system statistics (15 ms)
+      ΓêÜ includes no-cache headers (15 ms)
+    GET /api/admin/users
+      ΓêÜ returns paginated users list (17 
+ms)
+      ΓêÜ respects pagination parameters 
+(19 ms)
+      ΓêÜ user objects have expected 
+fields (19 ms)
+    PATCH /api/admin/users/:id/role
+      ΓêÜ promotes visitor to admin (54 ms)
+      ΓêÜ rejects invalid role (11 ms)
+      ΓêÜ rejects invalid user ID (10 ms)
+      ΓêÜ returns 404 for non-existent 
+user (14 ms)
+    GET /api/admin/analytics
+      ΓêÜ returns analytics data (29 ms)
+
+  console.log
+    ≡ƒôª New database connection established
+
+      at BoundPool.log (src/config/db.js:13:13)
+
+FAIL integration 
+__tests__/integration/routes.test.js
+  Routes API
+    GET /api/routes/graph
+      ΓêÜ returns GeoJSON 
+FeatureCollection (46 ms)
+    POST /api/routes/calculate
+      ├ù calculates route with valid 
+coordinates (49 ms)
+      ΓêÜ rejects invalid latitude (>90) 
+(13 ms)
+      ΓêÜ rejects invalid longitude (>180) 
+(8 ms)
+      ΓêÜ rejects invalid mode (9 ms)
+    POST /api/routes/snap
+      ΓêÜ snaps valid coordinates (46 ms)
+      ΓêÜ rejects out-of-range coordinates 
+(10 ms)
+    POST /api/routes/history
+      ΓêÜ saves route with valid data and 
+auth (19 ms)
+      ΓêÜ rejects without authentication 
+(13 ms)
+      ΓêÜ rejects invalid mode (14 ms)
+      ΓêÜ rejects negative distance (29 ms)
+    GET /api/routes/history
+      ΓêÜ returns user route history (14 
+ms)
+      ΓêÜ rejects without authentication 
+(9 ms)
+      ΓêÜ respects pagination params (17 
+ms)
+
+  ΓùÅ Routes API ΓÇ║ POST 
+/api/routes/calculate ΓÇ║ calculates route 
+with valid coordinates
+
+    expect(received).toBe(expected) // 
+Object.is equality
+
+    Expected: 200
+    Received: 404
+
+    [0m [90m 48 |[39m                 
+})[33m;[39m
+     [90m 49 |[39m
+    [31m[1m>[22m[39m[90m 50 |[39m    
+         expect(res[33m.[39mstatus)[33m.
+[39mtoBe([35m200[39m)[33m;[39m
+     [90m    |[39m                       
+         [31m[1m^[22m[39m
+     [90m 51 |[39m             expect(res
+[33m.[39mbody[33m.[39mtotalDistance)[3
+3m.[39mtoBeDefined()[33m;[39m
+     [90m 52 |[39m             expect(res
+[33m.[39mbody[33m.[39msteps)[33m.[39m
+toBeInstanceOf([33mArray[39m)[33m;[39m
+     [90m 53 |[39m         
+})[33m;[39m[0m
+
+      at Object.toBe (__tests__/integration
+/routes.test.js:50:32)
+
+PASS integration 
+__tests__/integration/auth.test.js
+  Auth API
+    POST /api/auth/register
+      ΓêÜ registers a new user 
+successfully (520 ms)
+      ΓêÜ rejects duplicate email (293 ms)
+      ΓêÜ rejects weak password (no 
+uppercase) (9 ms)
+      ΓêÜ rejects weak password (no digit) 
+(7 ms)
+      ΓêÜ rejects short password (<8 
+chars) (9 ms)
+      ΓêÜ rejects missing name (6 ms)
+      ΓêÜ rejects invalid email (5 ms)
+    POST /api/auth/login
+      ΓêÜ logs in with valid credentials 
+(12 ms)
+      ΓêÜ rejects wrong password (11 ms)
+      ΓêÜ rejects non-existent email (14 
+ms)
+      ΓêÜ rejects missing password (9 ms)
+    GET /api/auth/me
+      ΓêÜ returns user profile with valid 
+token (19 ms)
+      ΓêÜ rejects request without token (5 
+ms)
+      ΓêÜ rejects request with invalid 
+token (8 ms)
+
+PASS integration 
+__tests__/integration/weather.test.js
+  Weather API
+    GET /api/weather
+      ΓêÜ returns weather data for valid 
+coordinates (1215 ms)
+      ΓêÜ rejects missing lat parameter 
+(11 ms)
+      ΓêÜ rejects missing lng parameter (7 
+ms)
+      ΓêÜ rejects out-of-range latitude (5 
+ms)
+      ΓêÜ rejects out-of-range longitude 
+(10 ms)
+      ΓêÜ rejects non-numeric parameters 
+(5 ms)
+
+FAIL integration __tests__/security/securit
+y-integration.test.js
+  Security Requirements
+    SEC-01: JWT Authentication
+      ΓêÜ rejects request with no token 
+(52 ms)
+      ΓêÜ rejects expired JWT token (14 ms)
+      ΓêÜ rejects malformed JWT (9 ms)
+      ΓêÜ rejects token signed with wrong 
+secret (10 ms)
+    SEC-02: RBAC
+      ΓêÜ admin can access 
+/api/admin/stats (19 ms)
+      ΓêÜ visitor cannot access 
+/api/admin/stats (403) (7 ms)
+      ΓêÜ visitor cannot access 
+/api/admin/users (403) (11 ms)
+      ΓêÜ visitor cannot change roles 
+(403) (24 ms)
+    SEC-03: Input Validation
+      ├ù rejects SQL injection in ID 
+parameter (15 ms)
+      ΓêÜ rejects SQL injection in query 
+params (12 ms)
+      ΓêÜ rejects XSS in registration name 
+(262 ms)
+      ΓêÜ rejects oversized route history 
+path array (14 ms)
+      ΓêÜ rejects negative coordinates in 
+route calculation (8 ms)
+    SEC-04: Parameter Tampering
+      ΓêÜ rejects string ID in zone routes 
+(5 ms)
+      ΓêÜ rejects negative ID in zone 
+routes (8 ms)
+      ΓêÜ rejects float ID in admin routes 
+(14 ms)
+    SEC-05: Security Headers
+      ΓêÜ health endpoint has security 
+headers from Helmet (21 ms)
+      ΓêÜ has X-Request-ID header (8 ms)
+      ΓêÜ auth endpoints have no-cache 
+headers (15 ms)
+      ΓêÜ admin endpoints have no-cache 
+headers (10 ms)
+    SEC-06: Self-Demotion Protection
+      ΓêÜ admin cannot demote themselves 
+(17 ms)
+    SEC-07: Password Strength Requirements
+      ΓêÜ rejects password without 
+uppercase (5 ms)
+      ΓêÜ rejects password without 
+lowercase (7 ms)
+      ΓêÜ rejects password without digit 
+(5 ms)
+      ΓêÜ accepts strong password 
+(uppercase + lowercase + digit) (261 ms)
+    SEC-08: Unknown Endpoints
+      ΓêÜ returns 404 for unknown API 
+routes (5 ms)
+      ΓêÜ does not leak server info in 404 
+(4 ms)
+    SEC-09: Data Privacy
+      ΓêÜ admin user list does not expose 
+password hashes (17 ms)
+      ΓêÜ login response does not include 
+password hash (15 ms)
+
+  ΓùÅ Security Requirements ΓÇ║ SEC-03: 
+Input Validation ΓÇ║ rejects SQL injection 
+in ID parameter
+
+    expect(received).toContain(expected) 
+// indexOf
+
+    Expected value: 200
+    Received array: [400, 404]
+
+    [0m [90m 103 |[39m             
+[36mconst[39m res [33m=[39m 
+[36mawait[39m request(app)[33m.[39m[36
+mget[39m([32m"/api/zones/1'OR'1'='1/stats
+"[39m)[33m;[39m
+     [90m 104 |[39m             [90m// 
+sanitizeParams will reject non-numeric 
+IDs[39m
+    [31m[1m>[22m[39m[90m 105 |[39m   
+          expect([[35m400[39m[33m,[39m 
+[35m404[39m])[33m.[39mtoContain(res[33
+m.[39mstatus)[33m;[39m
+     [90m     |[39m                      
+          [31m[1m^[22m[39m
+     [90m 106 |[39m         })[33m;[39m
+     [90m 107 |[39m
+     [90m 108 |[39m         
+test([32m'rejects SQL injection in query 
+params'[39m[33m,[39m [36masync[39m () 
+[33m=>[39m {[0m
+
+      at Object.toContain (__tests__/securi
+ty/security-integration.test.js:105:32)
+
+PASS integration 
+__tests__/integration/zones.test.js
+  Zones API
+    GET /api/zones
+      ΓêÜ returns zones array (238 ms)
+      ΓêÜ zone objects have expected 
+fields (14 ms)
+    GET /api/zones/:id/stats
+      ΓêÜ returns stats for valid zone ID 
+(14 ms)
+      ΓêÜ rejects string ID (8 ms)
+      ΓêÜ rejects negative ID (9 ms)
+    GET /api/zones/:id/qr
+      ΓêÜ returns QR data for valid zone 
+(1341 ms)
+      ΓêÜ returns 404 for non-existent 
+zone (12 ms)
+      ΓêÜ rejects invalid ID parameter (12 
+ms)
+    GET /api/zones/:id/graph
+      ΓêÜ returns GeoJSON for valid zone 
+(8 ms)
+
+Test Suites: 2 failed, 4 passed, 6 total
+Tests:       2 failed, 83 passed, 85 total
+Snapshots:   0 total
+Time:        4.356 s, estimated 5 s
+Ran all test suites.
+Force exiting Jest: Have you considered 
+using `--detectOpenHandles` to detect 
+async operations that kept running after 
+all tests finished?

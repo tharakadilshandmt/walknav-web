@@ -1,0 +1,123 @@
+﻿Running one project: integration
+  console.log
+    ≡ƒôª New database connection established
+
+      at BoundPool.log (src/config/db.js:13:13)
+
+npx : FAIL integration __tests__/security/s
+ecurity-integration.test.js
+At line:1 char:23
++ ... ENV='test'; npx jest 
+--selectProjects integration 
+--testPathPattern=" ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified 
+   : (FAIL integratio...gration.test.js:S  
+  tring) [], RemoteException
+    + FullyQualifiedErrorId : NativeComman 
+   dError
+ 
+  Security Requirements
+    SEC-01: JWT Authentication
+      ΓêÜ rejects request with no token 
+(25 ms)
+      ΓêÜ rejects expired JWT token (9 ms)
+      ΓêÜ rejects malformed JWT (5 ms)
+      ΓêÜ rejects token signed with wrong 
+secret (6 ms)
+    SEC-02: RBAC
+      ΓêÜ admin can access 
+/api/admin/stats (12 ms)
+      ΓêÜ visitor cannot access 
+/api/admin/stats (403) (7 ms)
+      ΓêÜ visitor cannot access 
+/api/admin/users (403) (5 ms)
+      ΓêÜ visitor cannot change roles 
+(403) (17 ms)
+    SEC-03: Input Validation
+      ├ù rejects SQL injection in ID 
+parameter (11 ms)
+      ΓêÜ rejects SQL injection in query 
+params (12 ms)
+      ΓêÜ rejects XSS in registration name 
+(252 ms)
+      ΓêÜ rejects oversized route history 
+path array (8 ms)
+      ΓêÜ rejects negative coordinates in 
+route calculation (5 ms)
+    SEC-04: Parameter Tampering
+      ΓêÜ rejects string ID in zone routes 
+(4 ms)
+      ΓêÜ rejects negative ID in zone 
+routes (5 ms)
+      ΓêÜ rejects float ID in admin routes 
+(10 ms)
+    SEC-05: Security Headers
+      ΓêÜ health endpoint has security 
+headers from Helmet (18 ms)
+      ΓêÜ has X-Request-ID header (7 ms)
+      ΓêÜ auth endpoints have no-cache 
+headers (8 ms)
+      ΓêÜ admin endpoints have no-cache 
+headers (10 ms)
+    SEC-06: Self-Demotion Protection
+      ΓêÜ admin cannot demote themselves 
+(14 ms)
+    SEC-07: Password Strength Requirements
+      ΓêÜ rejects password without 
+uppercase (9 ms)
+      ΓêÜ rejects password without 
+lowercase (7 ms)
+      ΓêÜ rejects password without digit 
+(6 ms)
+      ΓêÜ accepts strong password 
+(uppercase + lowercase + digit) (247 ms)
+    SEC-08: Unknown Endpoints
+      ΓêÜ returns 404 for unknown API 
+routes (4 ms)
+      ΓêÜ does not leak server info in 404 
+(2 ms)
+    SEC-09: Data Privacy
+      ΓêÜ admin user list does not expose 
+password hashes (14 ms)
+      ΓêÜ login response does not include 
+password hash (14 ms)
+
+  ΓùÅ Security Requirements ΓÇ║ SEC-03: 
+Input Validation ΓÇ║ rejects SQL injection 
+in ID parameter
+
+    expect(received).toContain(expected) 
+// indexOf
+
+    Expected value: 200
+    Received array: [400, 404]
+
+      103 |             const res = await r
+equest(app).get("/api/zones/1'OR'1'='1/stat
+s");
+      104 |             // sanitizeParams 
+will reject non-numeric IDs
+    > 105 |             expect([400, 
+404]).toContain(res.status);
+          |                                
+^
+      106 |         });
+      107 |
+      108 |         test('rejects SQL 
+injection in query params', async () => {
+
+      at Object.toContain (__tests__/securi
+ty/security-integration.test.js:105:32)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 28 passed, 29 total
+Snapshots:   0 total
+Time:        2.075 s, estimated 4 s
+Ran all test suites matching 
+/security-int/i.
+Force exiting Jest: Have you considered 
+using `--detectOpenHandles` to detect 
+async operations that kept running after 
+all tests finished?

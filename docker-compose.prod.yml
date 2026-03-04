@@ -1,0 +1,63 @@
+# ============================================
+# WalkNav — Production Docker Compose Override
+# ============================================
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# This file overrides the dev docker-compose.yml with production settings.
+
+services:
+  db:
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-walknav_prod_pass}
+    # No port exposure in prod — only accessible within Docker network
+    ports: !reset []
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: prod
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://walknav_user:${DB_PASSWORD:-walknav_prod_pass}@db:5432/walknav
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
+      PORT: 3001
+      WEATHER_API_URL: https://api.open-meteo.com
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
+    # No volume mounts in production
+    volumes: !reset []
+    # No port exposure — accessed through Nginx
+    ports: !reset []
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: prod
+      args:
+        VITE_API_URL: /api
+        VITE_MAPBOX_TOKEN: ${MAPBOX_TOKEN:?MAPBOX_TOKEN must be set}
+    restart: always
+    # No volume mounts in production
+    volumes: !reset []
+    # No port exposure — accessed through Nginx
+    ports: !reset []
+
+  # Nginx reverse proxy (production only)
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: walknav-nginx
+    restart: always
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    depends_on:
+      - backend
+      - frontend

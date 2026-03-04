@@ -1,0 +1,56 @@
+﻿Running one project: integration
+  console.log
+    ≡ƒôª New database connection established
+
+      at BoundPool.log (src/config/db.js:13:13)
+
+npx : PASS integration 
+__tests__/integration/auth.test.js
+At line:1 char:23
++ ... ENV='test'; npx jest 
+--selectProjects integration 
+--testPathPattern=" ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified 
+   : (PASS integratio...on/auth.test.js:S  
+  tring) [], RemoteException
+    + FullyQualifiedErrorId : NativeComman 
+   dError
+ 
+  Auth API
+    POST /api/auth/register
+      ΓêÜ registers a new user 
+successfully (370 ms)
+      ΓêÜ rejects duplicate email (255 ms)
+      ΓêÜ rejects weak password (no 
+uppercase) (7 ms)
+      ΓêÜ rejects weak password (no digit) 
+(6 ms)
+      ΓêÜ rejects short password (<8 
+chars) (5 ms)
+      ΓêÜ rejects missing name (5 ms)
+      ΓêÜ rejects invalid email (5 ms)
+    POST /api/auth/login
+      ΓêÜ logs in with valid credentials 
+(11 ms)
+      ΓêÜ rejects wrong password (10 ms)
+      ΓêÜ rejects non-existent email (7 ms)
+      ΓêÜ rejects missing password (5 ms)
+    GET /api/auth/me
+      ΓêÜ returns user profile with valid 
+token (15 ms)
+      ΓêÜ rejects request without token (5 
+ms)
+      ΓêÜ rejects request with invalid 
+token (5 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       14 passed, 14 total
+Snapshots:   0 total
+Time:        1.966 s, estimated 4 s
+Ran all test suites matching /auth.test/i.
+Force exiting Jest: Have you considered 
+using `--detectOpenHandles` to detect 
+async operations that kept running after 
+all tests finished?

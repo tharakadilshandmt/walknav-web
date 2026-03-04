@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # PostgreSQL + PostGIS Database
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: walknav-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: walknav
+      POSTGRES_USER: walknav_user
+      POSTGRES_PASSWORD: walknav_dev_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U walknav_user -d walknav"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Node.js Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: walknav-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://walknav_user:walknav_dev_pass@db:5432/walknav
+      JWT_SECRET: walknav-dev-jwt-secret-change-in-production
+      PORT: 3001
+      WEATHER_API_URL: https://api.open-meteo.com
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend/src:/app/src
+      - ./database/seed:/app/seed
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # React Frontend (dev server)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: walknav-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:3001/api
+      VITE_MAPBOX_TOKEN: ${MAPBOX_TOKEN:-pk.placeholder}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
