@@ -11,6 +11,7 @@ build/
 .env
 .env.local
 .env.*.local
+.env.supervisor
 
 # Logs
 *.log
@@ -28,6 +29,7 @@ Thumbs.db
 
 # Docker
 pgdata/
+backend/seed/
 
 # Test coverage
 coverage/

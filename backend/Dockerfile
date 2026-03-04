@@ -28,6 +28,7 @@ RUN addgroup -S walknav && adduser -S walknav -G walknav
 COPY --from=deps /app/node_modules ./node_modules
 COPY package*.json ./
 COPY src/ ./src/
+COPY seed/ ./seed/
 
 # Set environment
 ENV NODE_ENV=production

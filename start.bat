@@ -1,7 +1,7 @@
 @echo off
 REM ============================================
-REM  WalkNav — One-Command Production Deployment
-REM  For supervisor/reviewer: runs the full app
+REM  WalkNav — One-Command Deployment
+REM  No configuration needed. Just run this.
 REM ============================================
 
 echo.
@@ -17,47 +17,32 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Create .env if it doesn't exist
-if not exist .env (
-    echo [INFO] Creating .env from template...
-    copy .env.example .env >nul 2>&1
-    if not exist .env (
-        echo [ERROR] .env.example not found. Please create .env manually.
-        pause
-        exit /b 1
-    )
-    echo [WARNING] Please edit .env and set MAPBOX_TOKEN before running again.
-    echo          Get your token at: https://account.mapbox.com/access-tokens/
-    notepad .env
-    pause
-    exit /b 0
-)
-
-echo [1/3] Building Docker images (first run may take a few minutes)...
-docker compose -f docker-compose.yml -f docker-compose.prod.yml build
+echo [1/3] Pulling Docker images from Docker Hub...
+echo         (First run downloads ~500MB. Subsequent runs are instant.)
+echo.
+docker compose -f docker-compose.supervisor.yml pull
 
 if errorlevel 1 (
-    echo [ERROR] Docker build failed. Check the output above.
+    echo.
+    echo [ERROR] Failed to pull images. Check your internet connection.
     pause
     exit /b 1
 )
 
+echo.
 echo [2/3] Starting all services...
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.supervisor.yml up -d
 
-echo [3/3] Waiting for services to be healthy...
-echo         (Database init + auto-seed may take 30-60 seconds on first run...)
-timeout /t 20 /nobreak >nul
+echo.
+echo [3/3] Waiting for services to start...
+echo         (Database init + auto-seed on first run takes ~30-60 seconds)
+timeout /t 25 /nobreak >nul
 
 REM Health check loop
-set HEALTHY=0
-for /L %%i in (1,1,6) do (
+for /L %%i in (1,1,8) do (
     curl -sf http://localhost/api/health >nul 2>&1
-    if not errorlevel 1 (
-        set HEALTHY=1
-        goto :health_ok
-    )
-    echo         Waiting for backend... (attempt %%i/6)
+    if not errorlevel 1 goto :health_ok
+    echo         Waiting for backend... (attempt %%i/8^)
     timeout /t 10 /nobreak >nul
 )
 
@@ -67,18 +52,18 @@ echo  ====================================
 echo   WalkNav is running!
 echo  ====================================
 echo.
-echo   App:       http://localhost
-echo   API:       http://localhost/api/health
+echo   Open in browser:  http://localhost
+echo   API health:       http://localhost/api/health
 echo.
-echo   Admin:     test@test.com / admin1234
+echo   Admin login:
+echo     Email:     test@test.com
+echo     Password:  admin1234
 echo.
-echo   To share with supervisor remotely:
-echo     Run share.bat (requires ngrok)
-echo.
-echo   Press any key to stop all services...
+echo   Press any key to STOP all services...
 echo  ====================================
 pause >nul
 
-echo Stopping services...
-docker compose -f docker-compose.yml -f docker-compose.prod.yml down
-echo Done!
+echo.
+echo  Stopping services...
+docker compose -f docker-compose.supervisor.yml down
+echo  Done! All services stopped.

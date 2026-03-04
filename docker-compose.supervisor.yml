@@ -1,0 +1,66 @@
+# ============================================
+# WalkNav — Supervisor Deployment (Docker Hub)
+# ============================================
+#
+# ZERO SETUP — just run:
+#   docker compose -f docker-compose.supervisor.yml up
+#
+# All images are pre-built and hosted on Docker Hub.
+# No source code, no tokens, no configuration needed.
+#
+# App:    http://localhost
+# Admin:  test@test.com / admin1234
+
+services:
+  db:
+    image: tharaka20/walknav-web:db
+    container_name: walknav-db
+    restart: always
+    environment:
+      POSTGRES_DB: walknav
+      POSTGRES_USER: walknav_user
+      POSTGRES_PASSWORD: walknav_dev_pass
+    volumes:
+      - walknav_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U walknav_user -d walknav" ]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+
+  backend:
+    image: tharaka20/walknav-web:backend
+    container_name: walknav-backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://walknav_user:walknav_dev_pass@db:5432/walknav
+      JWT_SECRET: walknav-supervisor-jwt-secret-2026
+      PORT: 3001
+      WEATHER_API_URL: https://api.open-meteo.com
+      FRONTEND_URL: http://localhost
+      ALLOWED_ORIGINS: http://localhost
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX: 200
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    image: tharaka20/walknav-web:frontend
+    container_name: walknav-frontend
+    restart: always
+
+  nginx:
+    image: tharaka20/walknav-web:nginx
+    container_name: walknav-nginx
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  walknav_pgdata:
